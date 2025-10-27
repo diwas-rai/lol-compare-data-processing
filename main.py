@@ -8,4 +8,6 @@ PATH_TO_DATA_FILE = os.getenv("PATH_TO_DATA_FILE")
 
 print("Loading data...")
 df = pd.read_csv(PATH_TO_DATA_FILE)
-print(df)
+
+print("Filtering for major league games...")
+df = df[df["league"].isin(["LEC", "LCK", "LPL", "LCS", "WRLDS", "MSI"])]
