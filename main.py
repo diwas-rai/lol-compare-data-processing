@@ -12,10 +12,12 @@ print("Loading data...")
 df = pd.read_csv(PATH_TO_DATA_FILE)
 
 print("Filtering for major league games...")
-df = df[df["league"].isin(["LEC", "LCK", "LPL", "LCS", "WRLDS", "MSI"])]
+#TODO: figure out how to work with LPL stats
+df = df[df["league"].isin(["LEC", "LCK", "LCS", "WRLDS", "MSI"])]
 
 print("Aggregating pro stats...")
 numeric_cols = [col for col in stats_to_aggregate if col in df.columns and is_numeric_dtype(df[col])]
 player_agg_stats = df.groupby('playername')[numeric_cols].mean()
+player_agg_stats["games_played"] = df.groupby('playername').size()
 
-print(player_agg_stats)
+player_agg_stats = player_agg_stats[player_agg_stats["games_played"] > 30]
