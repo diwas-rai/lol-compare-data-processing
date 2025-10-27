@@ -21,3 +21,4 @@ player_agg_stats = df.groupby('playername')[numeric_cols].mean()
 player_agg_stats["games_played"] = df.groupby('playername').size()
 
 player_agg_stats = player_agg_stats[player_agg_stats["games_played"] > 30]
+print(player_agg_stats)
