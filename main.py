@@ -9,6 +9,7 @@ from stats import stats_to_aggregate
 load_dotenv()
 
 PATH_TO_DATA_FILE = os.getenv("PATH_TO_DATA_FILE")
+PRO_STATS_OUTPUT_FILE = os.getenv("PRO_STATS_OUTPUT_FILE")
 
 print("Loading data...")
 df = pd.read_csv(PATH_TO_DATA_FILE)
@@ -23,6 +24,6 @@ numeric_cols = [
 ]
 player_agg_stats = df.groupby("playername")[numeric_cols].mean()
 player_agg_stats["games_played"] = df.groupby("playername").size()
-
 player_agg_stats = player_agg_stats[player_agg_stats["games_played"] > 30]
-print(player_agg_stats)
+print(f"Saving {len(player_agg_stats)} pro players to {PRO_STATS_OUTPUT_FILE}...")
+player_agg_stats.to_csv(PRO_STATS_OUTPUT_FILE)
