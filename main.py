@@ -17,6 +17,7 @@ PATH_TO_DATA_FILE = os.getenv("PATH_TO_DATA_FILE")
 PRO_STATS_OUTPUT_FILE = os.getenv("PRO_STATS_OUTPUT_FILE")
 SCALER_OUTPUT_FILE = os.getenv("SCALER_OUTPUT_FILE")
 UMAP_MODEL_OUTPUT_FILE = os.getenv("UMAP_MODEL_OUTPUT_FILE")
+UMAP_COORDS_OUTPUT_FILE = os.getenv("UMAP_COORDS_OUTPUT_FILE")
 
 S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
 s3_client = boto3.client("s3")
@@ -77,11 +78,24 @@ try:
     s3_key = os.path.basename(UMAP_MODEL_OUTPUT_FILE)
     print(f"Serialising UMAP model...")
     with io.BytesIO() as umap_buffer:
-        joblib.dump(pro_player_2d, umap_buffer)
+        joblib.dump(model_2d, umap_buffer)
         umap_buffer.seek(0)
 
         print(f"Uploading {s3_key} to s3://{S3_BUCKET_NAME}...")
         s3_client.put_object(Bucket=S3_BUCKET_NAME, Key=s3_key, Body=umap_buffer)
     print("Upload successful.")
+except Exception as e:
+    print(f"Error uploading {s3_key}: {e}")
+
+try:
+    s3_key = os.path.basename(UMAP_COORDS_OUTPUT_FILE)
+    print(f"Serialising UMAP coordinates...")
+    with io.BytesIO() as coords_buffer:
+        joblib.dump(pro_player_2d, coords_buffer)
+        coords_buffer.seek(0)
+
+        print(f"Uploading {s3_key} to s3://{S3_BUCKET_NAME}...")
+        s3_client.put_object(Bucket=S3_BUCKET_NAME, Key=s3_key, Body=coords_buffer)
+    print("Upload sucessful.")
 except Exception as e:
     print(f"Error uploading {s3_key}: {e}")
