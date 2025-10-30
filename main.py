@@ -71,7 +71,9 @@ print("Running UMAP... (This may take a moment)")
 model_2d = umap.UMAP(
     n_components=2, n_neighbors=15, min_dist=0.1, metric="cosine", random_state=42
 )
-pro_player_2d = model_2d.fit_transform(pro_player_stats_scaled)
+pro_player_2d = zip(
+    player_agg_stats.index.to_list(), model_2d.fit_transform(pro_player_stats_scaled)
+)
 print("UMAP complete.")
 
 try:
