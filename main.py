@@ -2,6 +2,7 @@ import os
 
 import joblib
 import pandas as pd
+import umap
 from dotenv import load_dotenv
 from pandas.api.types import is_numeric_dtype
 from sklearn.preprocessing import StandardScaler
@@ -13,6 +14,7 @@ load_dotenv()
 PATH_TO_DATA_FILE = os.getenv("PATH_TO_DATA_FILE")
 PRO_STATS_OUTPUT_FILE = os.getenv("PRO_STATS_OUTPUT_FILE")
 SCALER_OUTPUT_FILE = os.getenv("SCALER_OUTPUT_FILE")
+UMAP_MODEL_OUTPUT_FILE = os.getenv("UMAP_MODEL_OUTPUT_FILE")
 
 print("Loading data...")
 df = pd.read_csv(PATH_TO_DATA_FILE)
@@ -37,3 +39,12 @@ scaler = StandardScaler()
 pro_player_stats_scaled = scaler.fit_transform(player_agg_stats[features_to_scale])
 print(f"Saving scaler to {SCALER_OUTPUT_FILE}...")
 joblib.dump(scaler, SCALER_OUTPUT_FILE)
+
+print("Running UMAP... (This may take a moment)")
+model_2d = umap.UMAP(
+    n_components=2, n_neighbors=15, min_dist=0.1, metric="cosine", random_state=42
+)
+pro_player_2d = model_2d.fit_transform(pro_player_stats_scaled)
+print("UMAP complete.")
+print(f"Saving UMAP model to {UMAP_MODEL_OUTPUT_FILE}...")
+joblib.dump(pro_player_2d, UMAP_MODEL_OUTPUT_FILE)
