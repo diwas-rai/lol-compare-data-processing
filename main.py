@@ -1,7 +1,6 @@
 import io
 import os
 
-import boto3
 import joblib
 import pandas as pd
 import umap
@@ -19,9 +18,6 @@ SCALER_OUTPUT_FILE = os.getenv("SCALER_OUTPUT_FILE")
 UMAP_MODEL_OUTPUT_FILE = os.getenv("UMAP_MODEL_OUTPUT_FILE")
 UMAP_COORDS_OUTPUT_FILE = os.getenv("UMAP_COORDS_OUTPUT_FILE")
 
-S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
-s3_client = boto3.client("s3")
-
 print("Loading data...")
 df = pd.read_csv(PATH_TO_DATA_FILE)
 
@@ -38,14 +34,11 @@ player_agg_stats = player_agg_stats[player_agg_stats["games_played"] > 30]
 
 try:
     s3_key = os.path.basename(PRO_STATS_OUTPUT_FILE)
-    print(f"Generating CSV for {len(player_agg_stats)} players...")
-    csv_string = player_agg_stats.to_csv()
-
-    print(f"Uploading {s3_key} to s3://{S3_BUCKET_NAME}...")
-    s3_client.put_object(Bucket=S3_BUCKET_NAME, Key=s3_key, Body=csv_string)
-    print("Upload successful.")
+    print(f"Saving pro player stats to disk...")
+    player_agg_stats.to_csv(PRO_STATS_OUTPUT_FILE, index=True)
+    print("Save successful.")
 except Exception as e:
-    print(f"Error uploading {s3_key}: {e}")
+    print(f"Error saving pro player stats")
 
 
 print("Fitting scaler...")
@@ -54,17 +47,11 @@ scaler = StandardScaler()
 pro_player_stats_scaled = scaler.fit_transform(player_agg_stats[features_to_scale])
 
 try:
-    s3_key = os.path.basename(SCALER_OUTPUT_FILE)
-    print(f"Serialising scaler...")
-    with io.BytesIO() as scaler_buffer:
-        joblib.dump(scaler, scaler_buffer)
-        scaler_buffer.seek(0)
-
-        print(f"Uploading {s3_key} to s3://{S3_BUCKET_NAME}...")
-        s3_client.put_object(Bucket=S3_BUCKET_NAME, Key=s3_key, Body=scaler_buffer)
-    print("Upload successful.")
+    print(f"Saving scaler to disk...")
+    joblib.dump(scaler, SCALER_OUTPUT_FILE)
+    print("Save successful.")
 except Exception as e:
-    print(f"Error uploading {s3_key}: {e}")
+    print(f"Error saving scaler.")
 
 
 print("Running UMAP... (This may take a moment)")
@@ -77,27 +64,15 @@ pro_player_2d = zip(
 print("UMAP complete.")
 
 try:
-    s3_key = os.path.basename(UMAP_MODEL_OUTPUT_FILE)
-    print(f"Serialising UMAP model...")
-    with io.BytesIO() as umap_buffer:
-        joblib.dump(model_2d, umap_buffer)
-        umap_buffer.seek(0)
-
-        print(f"Uploading {s3_key} to s3://{S3_BUCKET_NAME}...")
-        s3_client.put_object(Bucket=S3_BUCKET_NAME, Key=s3_key, Body=umap_buffer)
-    print("Upload successful.")
+    print(f"Saving UMAP model to disk...")
+    joblib.dump(model_2d, UMAP_MODEL_OUTPUT_FILE)
+    print("Save successful.")
 except Exception as e:
-    print(f"Error uploading {s3_key}: {e}")
+    print(f"Error saving UMAP model.")
 
 try:
-    s3_key = os.path.basename(UMAP_COORDS_OUTPUT_FILE)
-    print(f"Serialising UMAP coordinates...")
-    with io.BytesIO() as coords_buffer:
-        joblib.dump(pro_player_2d, coords_buffer)
-        coords_buffer.seek(0)
-
-        print(f"Uploading {s3_key} to s3://{S3_BUCKET_NAME}...")
-        s3_client.put_object(Bucket=S3_BUCKET_NAME, Key=s3_key, Body=coords_buffer)
-    print("Upload sucessful.")
+    print(f"Saving pro player 2d coordinates to disk...")
+    joblib.dump(pro_player_2d, UMAP_COORDS_OUTPUT_FILE)
+    print("Save successful.")
 except Exception as e:
-    print(f"Error uploading {s3_key}: {e}")
+    print(f"Error saving pro player 2d coordinates.")
